@@ -368,6 +368,12 @@ install(TARGETS uriparser
 
 # Base
 add_library(kmlbase ${libkmlbase_la_SOURCES})
+# OTB patch: mark the kmlbase DLL build so mimetypes.h exports its data
+# constants as dllexport (the consuming libkml DLLs and external users then
+# reference them via dllimport, avoiding the MSVC data-export LNK2019).
+if(WIN32)
+  set_target_properties(kmlbase PROPERTIES COMPILE_DEFINITIONS KMLBASE_EXPORTS)
+endif()
 add_dependencies(kmlbase minizip uriparser)
 target_link_libraries(kmlbase ${EXPAT_LIBRARY} minizip uriparser)
 

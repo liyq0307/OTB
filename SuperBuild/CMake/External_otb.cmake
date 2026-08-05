@@ -58,6 +58,15 @@ endif()
 if(OTB_USE_OPENCV)
   ADDTO_DEPENDENCIES_IF_NOT_SYSTEM(OTB OPENCV)
   ADD_SUPERBUILD_CMAKE_VAR(OTB OpenCV_DIR)
+  # OpenCV debug libraries carry a "d" suffix on Windows
+  # (opencv_core460d.lib vs opencv_core460.lib), which OTB's FindOpenCV.cmake
+  # does not probe (it only looks for opencv_core / opencv_core460).  Pre-seed
+  # the cache with a per-config generator expression.
+  if(WIN32)
+    list(APPEND OTB_SB_WIN32_CONFIG
+      "-DOPENCV_core_LIBRARY:FILEPATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/opencv_core460d.lib,${SB_INSTALL_PREFIX}/lib/opencv_core460.lib>"
+      "-DOPENCV_ml_LIBRARY:FILEPATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/opencv_ml460d.lib,${SB_INSTALL_PREFIX}/lib/opencv_ml460.lib>")
+  endif()
 endif()
 
 if(OTB_USE_SHARK)
@@ -199,10 +208,20 @@ ExternalProject_Add(OTB
   -DOTB_WRAP_PYTHON:BOOL=${OTB_WRAP_PYTHON}
   -DOTB_WRAP_QGIS:BOOL=${OTB_WRAP_QGIS}
   -DPython_EXECUTABLE:PATH=${Python_EXECUTABLE}
+  ${OTB_SB_WIN32_CONFIG}
   ${OTB_ADDITIONAL_CACHE}
   CMAKE_ARGS ${OTB_SB_CONFIG}
   CMAKE_COMMAND ${SB_CMAKE_COMMAND}
   LOG_CONFIGURE 1
+  # Ensure the superbuild install bin dir is on PATH so that the GDAL
+  # try_run probes (gdalVersionTest, gdalFormatsTest, ...) can locate the
+  # runtime DLLs (gdal.dll and its dependencies) during OTB configure.
+  CONFIGURE_ENVIRONMENT_MODIFICATION
+    "PATH=path_list_prepend:${CMAKE_INSTALL_PREFIX}/bin"
+  # Same for the build step: OTB's custom build tools (generate_descriptors,
+  # etc.) link against the superbuild runtime DLLs in install/bin.
+  BUILD_ENVIRONMENT_MODIFICATION
+    "PATH=path_list_prepend:${CMAKE_INSTALL_PREFIX}/bin"
   )
 
 

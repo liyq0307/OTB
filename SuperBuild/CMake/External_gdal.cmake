@@ -52,6 +52,22 @@ else() # real OS does support OpenSSL
    list(APPEND GDAL_CONFIG_LIBS -DGDAL_USE_OPENSSL:BOOL=ON)
 endif()
 
+if(WIN32)
+   # HDF4 debug libraries carry a _D suffix (dfalt_D.lib / mfhdfalt_D.lib),
+   # which GDAL's FindHDF4 does not probe (it looks for dfaltd / mfhdfaltd /
+   # dfalt / mfhdf).  Pre-seed its per-config cache variables with a generator
+   # expression.  Both _DEBUG and _RELEASE get the SAME genex so that, once it
+   # is resolved per configuration, select_library_configurations() sees two
+   # equal paths, skips the "optimized;...;debug;..." multi-config form, and
+   # yields a single plain path for IMPORTED_LOCATION (which cannot carry the
+   # optimized/debug keywords).
+   list(APPEND GDAL_CONFIG_LIBS
+     -DHDF4_df_LIBRARY_DEBUG:FILEPATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/dfalt_D.lib,${SB_INSTALL_PREFIX}/lib/dfalt.lib>
+     -DHDF4_df_LIBRARY_RELEASE:FILEPATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/dfalt_D.lib,${SB_INSTALL_PREFIX}/lib/dfalt.lib>
+     -DHDF4_mfhdf_LIBRARY_DEBUG:FILEPATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/mfhdfalt_D.lib,${SB_INSTALL_PREFIX}/lib/mfhdfalt.lib>
+     -DHDF4_mfhdf_LIBRARY_RELEASE:FILEPATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/mfhdfalt_D.lib,${SB_INSTALL_PREFIX}/lib/mfhdfalt.lib>)
+endif()
+
 ExternalProject_Add(GDAL
    PREFIX GDAL
    DEPENDS ${GDAL_DEPENDENCIES}
@@ -67,7 +83,7 @@ ExternalProject_Add(GDAL
    -DBUILD_APPS:BOOL=ON
    -DBUILD_CSHARP_BINDINGS:BOOL=OFF
    -DBUILD_JAVA_BINDINGS:BOOL=OFF
-   -DBUILD_PYTHON_BINDINGS:BOOL=ON
+   -DBUILD_PYTHON_BINDINGS:BOOL=OFF
    -DBUILD_SHARED_LIBS:BOOL=ON
    -DBUILD_TESTING:BOOL=ON
    -DSQLite3_HAS_RTREE:BOOL=ON 

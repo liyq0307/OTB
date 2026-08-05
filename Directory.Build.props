@@ -1,0 +1,7 @@
+<Project>
+  <!-- Disable the user-level vcpkg MSBuild integration for this build tree.
+       vcpkg.user.props/.targets are skipped when VCPkgLocalAppDataDisabled is set. -->
+  <PropertyGroup>
+    <VCPkgLocalAppDataDisabled>true</VCPkgLocalAppDataDisabled>
+  </PropertyGroup>
+</Project>

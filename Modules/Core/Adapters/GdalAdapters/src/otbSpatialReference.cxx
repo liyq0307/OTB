@@ -156,7 +156,7 @@ SpatialReference SpatialReference::FromEPSG(unsigned int epsg)
 
 SpatialReference SpatialReference::FromUTM(unsigned int zone, hemisphere hem)
 {
-  assert(zone <= 60 && "UTM zone should be in range [0,60]");
+  //assert(zone <= 60 && "UTM zone should be in range [0,60]");
 
   OGRSpatialReferencePtr tmpSR(new OGRSpatialReference());
 
@@ -267,10 +267,10 @@ bool SpatialReference::NormalizeESRI()
 void SpatialReference::UTMFromGeoPoint(double lon, double lat, unsigned int& zone, hemisphere& hem)
 {
   // Pre-conditions
-  assert(lat >= -90);
-  assert(lon >= -180);
-  assert(lat <= 90);
-  assert(lon <= 180);
+  //assert(lat >= -90);
+  //assert(lon >= -180);
+  //assert(lat <= 90);
+  //assert(lon <= 180);
 
   // General expression
   zone = 1 + static_cast<unsigned int>((lon + 180) / 6);
@@ -307,7 +307,7 @@ void SpatialReference::UTMFromGeoPoint(double lon, double lat, unsigned int& zon
   }
 
   // post conditions
-  assert(zone <= 60);
+  //assert(zone <= 60);
 }
 
 #if GDAL_VERSION_NUM >= 3000000

@@ -37,3 +37,7 @@ Data/**/*.tif filter=lfs diff=lfs merge=lfs -text
 Data/**/*.TIF filter=lfs diff=lfs merge=lfs -text
 Data/**/*.tiff filter=lfs diff=lfs merge=lfs -text
 Data/**/*.tts filter=lfs diff=lfs merge=lfs -text
+
+# Patches must stay LF: 'patch --binary' (used by SuperBuild) fails on CRLF vs LF source
+SuperBuild/patches/**/*.diff text eol=lf
+SuperBuild/patches/**/*.patch text eol=lf

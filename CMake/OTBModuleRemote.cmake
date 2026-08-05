@@ -120,6 +120,51 @@ function(_git_update git_executable git_repository git_tag module_dir)
   endif()
 endfunction()
 
+# Helper to apply SuperBuild patches (SuperBuild/patches/<MODULE>/) to a
+# remote module after it has been cloned or updated. Patches follow the
+# SuperBuild convention: <module>-<number>-<all|win|linux>.diff. They are
+# applied with 'patch -utN -p1' (no --binary), so that LF patches also apply
+# to CRLF checkouts (see SuperBuild/patches/README.md). -N (--forward) makes
+# re-applying an already-applied patch a no-op instead of reversing it, which
+# matters because this runs on every configure.
+function(_apply_remote_module_patches module_dir)
+  get_filename_component(module_name "${module_dir}" NAME)
+  string(TOLOWER "${module_name}" patch_prefix)
+  set(patch_dir "${OTB_SOURCE_DIR}/SuperBuild/patches/${module_name}")
+
+  if(NOT EXISTS "${patch_dir}")
+    return()
+  endif()
+
+  if(WIN32)
+    set(platform_match "win")
+  else()
+    set(platform_match "linux")
+  endif()
+
+  file(GLOB patch_files "${patch_dir}/${patch_prefix}*${platform_match}.diff")
+  file(GLOB all_patch_files "${patch_dir}/${patch_prefix}*all.diff")
+  list(APPEND patch_files ${all_patch_files})
+
+  if(NOT patch_files)
+    return()
+  endif()
+
+  string(REPLACE ";" " " patch_files_arg "${patch_files}")
+  message(STATUS "Applying SuperBuild patches to remote module ${module_name}: ${patch_files_arg}")
+  execute_process(
+    COMMAND "${CMAKE_COMMAND}"
+      "-DSOURCE_DIR=${module_dir}"
+      "-DDOT_DIFF_FILES=${patch_files_arg}"
+      "-DPATCH_ARGS=-utN"
+      -P "${OTB_SOURCE_DIR}/SuperBuild/CMake/patch.cmake"
+    RESULT_VARIABLE patch_rv
+    )
+  if(NOT patch_rv STREQUAL "0")
+    message(FATAL_ERROR "Failed to apply SuperBuild patches to remote module ${module_name}")
+  endif()
+endfunction()
+
 # Helper function to fetch a module stored in a Git repository.
 # Git fetches are only performed when required.
 function(_fetch_with_git git_executable git_repository git_tag module_dir)
@@ -134,6 +179,9 @@ function(_fetch_with_git git_executable git_repository git_tag module_dir)
   else() # We already have a clone, but we need to check that it has the right revision.
     _git_update("${git_executable}" "${git_repository}" "${git_tag}" "${module_dir}")
   endif()
+
+  # Apply SuperBuild patches (if any) after a fresh clone or an update.
+  _apply_remote_module_patches("${module_dir}")
 endfunction()
 
 # Download and turn on a remote module.

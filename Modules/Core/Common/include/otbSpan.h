@@ -81,12 +81,12 @@ template <typename T> struct Span
   constexpr Span(pointer ptr, index_type count) noexcept
     : m_buffer(ptr), m_size(count)
     {
-      assert(! (!ptr) xor (!count));
+      assert(! (!ptr) ^ (!count));
     }
   constexpr Span(pointer first, pointer last) noexcept
     : Span(first, last - first)
     {
-      assert(! (!first) xor (!last));
+      assert(! (!first) ^ (!last));
       assert(first <= last);
     }
   template <std::size_t N> constexpr Span(element_type (&arr)[N]) noexcept

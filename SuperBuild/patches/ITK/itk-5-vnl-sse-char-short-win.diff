@@ -1,0 +1,79 @@
+diff -burN a/Modules/ThirdParty/VNLInstantiation/src/CMakeLists.txt b/Modules/ThirdParty/VNLInstantiation/src/CMakeLists.txt
+--- a/Modules/ThirdParty/VNLInstantiation/src/CMakeLists.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/Modules/ThirdParty/VNLInstantiation/src/CMakeLists.txt	1970-01-01 00:00:00.000000000 +0000
+@@ -12,3 +12,5 @@
+   vnl_c_vector+char-.cxx
+   vnl_c_vector+short-.cxx
++  vnl_sse+char-.cxx
++  vnl_sse+short-.cxx
+   vnl_matrix+short-.cxx
+diff -burN a/Modules/ThirdParty/VNLInstantiation/src/vnl_sse+char-.cxx b/Modules/ThirdParty/VNLInstantiation/src/vnl_sse+char-.cxx
+--- a/Modules/ThirdParty/VNLInstantiation/src/vnl_sse+char-.cxx	1970-01-01 00:00:00.000000000 +0000
++++ b/Modules/ThirdParty/VNLInstantiation/src/vnl_sse+char-.cxx	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,31 @@
++/*=========================================================================
++ *
++ *  Copyright Insight Software Consortium
++ *
++ *  Licensed under the Apache License, Version 2.0 (the "License");
++ *  you may not use this file except in compliance with the License.
++ *  You may obtain a copy of the License at
++ *
++ *         http://www.apache.org/licenses/LICENSE-2.0.txt
++ *
++ *  Unless required by applicable law or agreed to in writing, software
++ *  distributed under the License is distributed on an "AS IS" BASIS,
++ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ *  See the License for the specific language governing permissions and
++ *  limitations under the License.
++ *
++ *=========================================================================*/
++// Explicit instantiation of the generic (non-SSE) vnl_sse<char> so that the
++// member functions are emitted and exported from this library.  In Debug
++// builds VNL_SSE_FORCE_INLINE is empty, so consumers reference these symbols
++// via __declspec(dllimport); without this instantiation the link fails with
++// unresolved external symbols (see ITK issue with vnl_sse<char>/<short> on
++// MSVC debug builds).
++//
++// The export override must be applied before vnl_sse.h is parsed: the class
++// template carries VNL_EXPORT and would otherwise be marked dllimport here.
++#include "vnl/vnl_export.h"
++#include "vnl_export_override.h"
++#include "vnl/vnl_sse.h"
++
++template class vnl_sse<char>;
+diff -burN a/Modules/ThirdParty/VNLInstantiation/src/vnl_sse+short-.cxx b/Modules/ThirdParty/VNLInstantiation/src/vnl_sse+short-.cxx
+--- a/Modules/ThirdParty/VNLInstantiation/src/vnl_sse+short-.cxx	1970-01-01 00:00:00.000000000 +0000
++++ b/Modules/ThirdParty/VNLInstantiation/src/vnl_sse+short-.cxx	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,31 @@
++/*=========================================================================
++ *
++ *  Copyright Insight Software Consortium
++ *
++ *  Licensed under the Apache License, Version 2.0 (the "License");
++ *  you may not use this file except in compliance with the License.
++ *  You may obtain a copy of the License at
++ *
++ *         http://www.apache.org/licenses/LICENSE-2.0.txt
++ *
++ *  Unless required by applicable law or agreed to in writing, software
++ *  distributed under the License is distributed on an "AS IS" BASIS,
++ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ *  See the License for the specific language governing permissions and
++ *  limitations under the License.
++ *
++ *=========================================================================*/
++// Explicit instantiation of the generic (non-SSE) vnl_sse<short> so that the
++// member functions are emitted and exported from this library.  In Debug
++// builds VNL_SSE_FORCE_INLINE is empty, so consumers reference these symbols
++// via __declspec(dllimport); without this instantiation the link fails with
++// unresolved external symbols (see ITK issue with vnl_sse<char>/<short> on
++// MSVC debug builds).
++//
++// The export override must be applied before vnl_sse.h is parsed: the class
++// template carries VNL_EXPORT and would otherwise be marked dllimport here.
++#include "vnl/vnl_export.h"
++#include "vnl_export_override.h"
++#include "vnl/vnl_sse.h"
++
++template class vnl_sse<short>;

@@ -178,6 +178,12 @@ list(APPEND SB_CMAKE_CACHE_ARGS "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}")
 list(APPEND SB_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:PATH=${SB_INSTALL_PREFIX}")
 list(APPEND SB_CMAKE_CACHE_ARGS "-DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}")
 list(APPEND SB_CMAKE_CACHE_ARGS "-DCMAKE_PREFIX_PATH:PATH=${SB_CMAKE_PREFIX_PATH}")
+# CMake 4.x removed compatibility with cmake_minimum_required(VERSION < 3.5) used
+# by many old third-party CMakeLists (tinyxml, expat, fftw, geos, geotiff, gsl, itk,
+# libsvm, muparser, openjpeg, proj, shark, ...). This restores it for all sub-builds.
+if(NOT DEFINED CMAKE_POLICY_VERSION_MINIMUM)
+  list(APPEND SB_CMAKE_CACHE_ARGS "-DCMAKE_POLICY_VERSION_MINIMUM:STRING=3.5")
+endif()
 
 if(UNIX)
   list(APPEND SB_CMAKE_CACHE_ARGS "-DCMAKE_SKIP_BUILD_RPATH:BOOL=${CMAKE_SKIP_BUILD_RPATH}")

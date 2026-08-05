@@ -41,6 +41,11 @@ ExternalProject_Add(OPENCV
   DOWNLOAD_DIR ${DOWNLOAD_LOCATION}
   CMAKE_CACHE_ARGS
   ${SB_CMAKE_CACHE_ARGS}
+  # OpenCV's build dir is a multi-config (Visual Studio) project. Make sure it is
+  # configured with the same configuration types as the SuperBuild (e.g. include
+  # RelWithDebInfo), otherwise "cmake --build --config RelWithDebInfo" fails with
+  # "no RelWithDebInfo" because that configuration is missing from the solution.
+  -DCMAKE_CONFIGURATION_TYPES:STRING=${CMAKE_CONFIGURATION_TYPES}
   -DBUILD_DOCS:BOOL=OFF
   -DBUILD_EXAMPLES:BOOL=OFF
   -DBUILD_JASPER:BOOL=OFF

@@ -29,11 +29,8 @@ add_compile_definitions(SQLITE_ENABLE_COLUMN_METADATA)
 add_compile_definitions(SQLITE_ENABLE_RTREE)
 add_compile_definitions(SQLITE_THREADSAFE=1)
 
-if(WIN32)
-  add_library(sqlite3 STATIC sqlite3.c)
-else()
-  add_library(sqlite3 sqlite3.c)
-endif()
+add_library(sqlite3 sqlite3.c)
+set_property(TARGET sqlite3 PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 add_executable(sqlite3-bin shell.c sqlite3.c)
 if(WIN32)
@@ -46,8 +43,6 @@ endif()
 set_target_properties(sqlite3-bin PROPERTIES OUTPUT_NAME sqlite3)
 set_target_properties(sqlite3-bin sqlite3
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 

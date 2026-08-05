@@ -34,7 +34,7 @@ ADD_SUPERBUILD_CMAKE_VAR(LIBKML Boost_INCLUDE_DIR)
 
 ExternalProject_Add(LIBKML
   PREFIX LIBKML
-  URL "https://deb.debian.org/debian/pool/main/libk/libkml/libkml_1.3.0~r864+dfsg.orig.tar.gz"
+  URL "https://snapshot.debian.org/archive/debian/20220301T000000Z/pool/main/libk/libkml/libkml_1.3.0~r864+dfsg.orig.tar.gz"
   URL_MD5 487e3c8dd1ad03551e361ab6a1b4e083
   BINARY_DIR ${LIBKML_SB_BUILD_DIR}
   INSTALL_DIR ${SB_INSTALL_PREFIX}
@@ -43,6 +43,7 @@ ExternalProject_Add(LIBKML
   PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory  ${CMAKE_SOURCE_DIR}/patches/LIBKML ${LIBKML_SB_SRC}
   CMAKE_CACHE_ARGS ${SB_CMAKE_CACHE_ARGS}
   ${LIBKML_SB_CONFIG}
+  -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS:BOOL=ON
   CMAKE_COMMAND ${SB_CMAKE_COMMAND}
   LOG_DOWNLOAD 1
   LOG_CONFIGURE 1
@@ -56,7 +57,11 @@ if(WIN32)
   if(USE_SYSTEM_EXPAT)
     list(APPEND _SB_LIBKML_BASE_LIBRARY ${EXPAT_LIBRARY})
   else()
-    list(APPEND _SB_LIBKML_BASE_LIBRARY ${_SB_EXPAT_LIBRARY})
+    # expat uses different library names per configuration on Windows:
+    # libexpatd.lib for Debug, libexpat.lib for Release.
+    list(APPEND _SB_LIBKML_BASE_LIBRARY
+      debug ${SB_INSTALL_PREFIX}/lib/libexpatd.lib
+      optimized ${SB_INSTALL_PREFIX}/lib/libexpat.lib)
   endif()
   list(APPEND _SB_LIBKML_BASE_LIBRARY ${SB_INSTALL_PREFIX}/lib/uriparser.lib)
 

@@ -28,6 +28,12 @@ add_custom_command(TARGET otbQgisDescriptor PRE_BUILD
   )
 
 file(RELATIVE_PATH app_location ${OTB_BINARY_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/otb/applications)
+# Multi-config generators (Visual Studio) place the application DLLs in a
+# per-config subdirectory (e.g. lib/otb/applications/Release). The descriptor
+# tool does not append the config itself, so include it in the path.
+if(CMAKE_CONFIGURATION_TYPES)
+  set(app_location "${app_location}/$<CONFIG>")
+endif()
 
 set(app_names ${OTB_APPLICATIONS_NAME_LIST})
 list(REMOVE_ITEM app_names "TestApplication")
@@ -40,6 +46,15 @@ set(generate_descriptor_cmd "$<TARGET_FILE:otbQgisDescriptor>")
 #if( "${CMAKE_SYSTEM_NAME}"  MATCHES "Linux")
 if(CMAKE_SKIP_RPATH AND "${CMAKE_SYSTEM_NAME}"  MATCHES "Linux")
   set(generate_descriptor_cmd "env;LD_LIBRARY_PATH=${OTB_BINARY_DIR}/lib;$<TARGET_FILE:otbQgisDescriptor>")
+endif()
+# On Windows, the descriptor tool runs as a custom build step whose process
+# PATH does not include the superbuild install bin dir (where the runtime
+# DLLs of boost/gdal/curl/... live).  Prepend it so the tool can load its
+# DLLs (otherwise the step fails with STATUS_DLL_NOT_FOUND, 0xC0000135).
+if(WIN32 AND CMAKE_PREFIX_PATH)
+  list(GET CMAKE_PREFIX_PATH 0 _sb_prefix)
+  set(generate_descriptor_cmd
+    "${CMAKE_COMMAND};-E;env;--modify;PATH=path_list_prepend:${_sb_prefix}/bin;$<TARGET_FILE:otbQgisDescriptor>")
 endif()
 # generate dependency list
 # put all app into a file

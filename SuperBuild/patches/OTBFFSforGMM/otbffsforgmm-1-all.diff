@@ -1,0 +1,92 @@
+diff --git a/app/otbPredictGMMApp.cxx b/app/otbPredictGMMApp.cxx
+index 883a013..96ad571 100644
+--- a/app/otbPredictGMMApp.cxx
++++ b/app/otbPredictGMMApp.cxx
+@@ -52,7 +52,6 @@ private:
+     SetDescription("Performs a classification of the input image according to a GMM model file.");
+ 
+     // Documentation
+-    SetDocName("Image Classification");
+     SetDocLongDescription("This application performs an image classification based on a GMM model file produced by the TrainGMMApp or TrainGMMSelectionApp application. Pixels of the output image will contain the class labels decided by the classifier (maximal class label = 65535). The input pixels can be optionally centered and reduced according to the statistics file produced by the ComputeImagesStatistics application. An optional input mask can be provided, in which case only input image pixels whose corresponding mask value is greater than 0 will be classified. The remaining of pixels will be given the label 0 in the output image.");
+ 
+     SetDocLimitations("The input image must have the same type, order and number of bands than the images used to produce the statistics file and the SVM model file. If a statistics file was used during training by the TrainImagesClassifier, it is mandatory to use the same statistics file for classification. If an input mask is used, its size must match the input image size.");
+diff --git a/app/otbTrainGMMApp.cxx b/app/otbTrainGMMApp.cxx
+index 1e6dd04..5b79484 100644
+--- a/app/otbTrainGMMApp.cxx
++++ b/app/otbTrainGMMApp.cxx
+@@ -79,7 +79,6 @@ private:
+     SetDescription("Train a GMM classifier from multiple pairs of images and training vector data.");
+ 
+     // Documentation
+-    SetDocName("Train a GMM classifier from multiple images");
+     SetDocLongDescription(
+       "This application performs a GMM classifier training from multiple pairs of input images and training vector data. "
+       "Samples are composed of pixel values in each band optionally centered and possibly reduced using an XML statistics file produced by "
+diff --git a/app/otbTrainGMMSelectionApp.cxx b/app/otbTrainGMMSelectionApp.cxx
+index a663de3..02db0c3 100644
+--- a/app/otbTrainGMMSelectionApp.cxx
++++ b/app/otbTrainGMMSelectionApp.cxx
+@@ -80,7 +80,6 @@ private:
+     SetDescription("Train a GMM classifier from multiple pairs of images and training vector data.");
+ 
+     // Documentation
+-    SetDocName("Train a GMM classifier from multiple images");
+     SetDocLongDescription(
+       "This application performs a GMM classifier training from multiple pairs of input images and training vector data. "
+       "Samples are composed of pixel values in each band optionally centered and possibly reduced using an XML statistics file produced by "
+diff --git a/include/otbGMMMachineLearningModel.h b/include/otbGMMMachineLearningModel.h
+index 7c1b2a4..924cac1 100644
+--- a/include/otbGMMMachineLearningModel.h
++++ b/include/otbGMMMachineLearningModel.h
+@@ -89,7 +89,7 @@ protected:
+   virtual ~GMMMachineLearningModel();
+ 
+   /** Predict values using the model */
+-  TargetSampleType DoPredict(const InputSampleType& input, ConfidenceValueType *quality=ITK_NULLPTR) const ITK_OVERRIDE;
++  TargetSampleType DoPredict(const InputSampleType& input, ConfidenceValueType *quality=ITK_NULLPTR, ProbaSampleType *proba=ITK_NULLPTR) const ITK_OVERRIDE;
+ 
+   /** PrintSelf method */
+   void PrintSelf(std::ostream& os, itk::Indent indent) const;
+diff --git a/include/otbGMMMachineLearningModel.txx b/include/otbGMMMachineLearningModel.txx
+index c25b16c..d69af4f 100644
+--- a/include/otbGMMMachineLearningModel.txx
++++ b/include/otbGMMMachineLearningModel.txx
+@@ -408,8 +408,9 @@ template <class TInputValue, class TTargetValue>
+ typename GMMMachineLearningModel<TInputValue,TTargetValue>
+ ::TargetSampleType
+ GMMMachineLearningModel<TInputValue,TTargetValue>
+-::DoPredict(const InputSampleType & rawInput, ConfidenceValueType *quality) const
++::DoPredict(const InputSampleType & rawInput, ConfidenceValueType *quality, ProbaSampleType *proba) const
+ {
++  (void)proba;
+   // Convert input data
+   VectorType input(m_FeatNb);
+   vnl_copy(vnl_vector<InputValueType>(rawInput.GetDataPointer(), m_FeatNb),input);
+diff --git a/include/otbGMMSelectionMachineLearningModel.h b/include/otbGMMSelectionMachineLearningModel.h
+index 2547a06..e853f7c 100644
+--- a/include/otbGMMSelectionMachineLearningModel.h
++++ b/include/otbGMMSelectionMachineLearningModel.h
+@@ -101,7 +101,7 @@ protected:
+   GMMSelectionMachineLearningModel();
+ 
+   /** Predict values using the model */
+-  TargetSampleType DoPredict(const InputSampleType& input, ConfidenceValueType *quality=ITK_NULLPTR) const ITK_OVERRIDE;
++  TargetSampleType DoPredict(const InputSampleType& input, ConfidenceValueType *quality=ITK_NULLPTR, ProbaSampleType *proba=ITK_NULLPTR) const ITK_OVERRIDE;
+ 
+   /** Destructor */
+   virtual ~GMMSelectionMachineLearningModel();
+diff --git a/include/otbGMMSelectionMachineLearningModel.txx b/include/otbGMMSelectionMachineLearningModel.txx
+index 30e304c..946c915 100644
+--- a/include/otbGMMSelectionMachineLearningModel.txx
++++ b/include/otbGMMSelectionMachineLearningModel.txx
+@@ -937,8 +937,9 @@ template <class TInputValue, class TTargetValue>
+ typename GMMSelectionMachineLearningModel<TInputValue,TTargetValue>
+ ::TargetSampleType
+ GMMSelectionMachineLearningModel<TInputValue,TTargetValue>
+-::DoPredict(const InputSampleType & rawInput, ConfidenceValueType *quality) const
++::DoPredict(const InputSampleType & rawInput, ConfidenceValueType *quality, ProbaSampleType *proba) const
+ {
++  (void)proba;
+   if (m_SelectedVar.empty())
+   {
+     return Superclass::DoPredict(rawInput, quality);

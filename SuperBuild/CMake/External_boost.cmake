@@ -74,6 +74,11 @@ set(BOOST_SB_CONFIG
   threading=multi
   runtime-link=shared
   --prefix=${SB_INSTALL_PREFIX}
+  # Install headers straight into <prefix>/include so that consumers which do
+  # not use find_package(Boost) (e.g. GDAL's LIBKML driver) can resolve
+  # <boost/...> via <prefix>/include.  Without this, headers land in
+  # <prefix>/include/boost-1_82 and those consumers fail to compile.
+  --includedir=${SB_INSTALL_PREFIX}/include
   )
 
 set(BOOST_BUILD_COMMAND ${CMAKE_COMMAND}
@@ -91,9 +96,21 @@ ExternalProject_Add(BOOST
   BINARY_DIR ${BOOST_SB_BUILD_DIR}
   INSTALL_DIR ${SB_INSTALL_PREFIX}
   DOWNLOAD_DIR ${DOWNLOAD_LOCATION}
+  PATCH_COMMAND ${CMAKE_COMMAND}
+    -DBOOST_SRC_DIR=${CMAKE_CURRENT_BINARY_DIR}/BOOST/src/BOOST
+    -DB2_SRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}/patches/BOOST/b2-src
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/patches/BOOST/patch_boost_b2.cmake
   CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
   BUILD_COMMAND ${BOOST_BUILD_COMMAND}
-  INSTALL_COMMAND ""
+  # Normalize the installation (DLLs into bin/, unversioned DLL copies,
+  # fix hard-coded versioned include dir in boost CMake configs).  See
+  # patches/BOOST/boost_postinstall.cmake.
+  INSTALL_COMMAND ${CMAKE_COMMAND}
+    -DBOOST_LIB_DIR=${SB_INSTALL_PREFIX}/lib
+    -DBOOST_BIN_DIR=${SB_INSTALL_PREFIX}/bin
+    -DBOOST_CMAKE_DIR=${SB_INSTALL_PREFIX}/lib/cmake
+    -DBOOST_INCLUDE_DIR=${SB_INSTALL_PREFIX}/include
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/patches/BOOST/boost_postinstall.cmake
   LOG_DOWNLOAD 1
   LOG_CONFIGURE 1
   LOG_BUILD 1
@@ -102,8 +119,4 @@ ExternalProject_Add(BOOST
 
 #HINT: avoid all uses of  _SB_* in External_<project>.cmake
 # and depend on much saner CMAKE_PREFIX_PATH for cmake projects.
-if(WIN32)
-  set(_SB_Boost_INCLUDE_DIR ${SB_INSTALL_PREFIX}/include/boost-1_82)
-else()
-  set(_SB_Boost_INCLUDE_DIR ${SB_INSTALL_PREFIX}/include)
-endif()
+set(_SB_Boost_INCLUDE_DIR ${SB_INSTALL_PREFIX}/include)

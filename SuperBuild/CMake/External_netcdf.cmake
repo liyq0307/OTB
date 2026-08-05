@@ -36,6 +36,23 @@ if(UNIX)
   ADD_SUPERBUILD_CMAKE_VAR(NETCDF CURL_INCLUDE_DIR)
 endif()
 
+if(WIN32)
+  # HDF4 uses different library names per configuration on Windows:
+  # dfalt_D.lib / mfhdfalt_D.lib for Debug, dfalt.lib / mfhdfalt.lib for
+  # Release.  netcdf's own find_library() only probes the release names, so
+  # pre-seed the cache with a per-config generator expression.
+  list(APPEND NETCDF_SB_CONFIG
+    "-DHDF4_DF_LIB:FILEPATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/dfalt_D.lib,${SB_INSTALL_PREFIX}/lib/dfalt.lib>"
+    "-DHDF4_MFHDF_LIB:FILEPATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/mfhdfalt_D.lib,${SB_INSTALL_PREFIX}/lib/mfhdfalt.lib>")
+  # curl uses a different import library name per configuration on Windows:
+  # libcurl-d_imp.lib for Debug, libcurl_imp.lib for Release.  The
+  # -DCURL_LIBRARIES below (from _SB_CURL_LIBRARY) only carries the Release
+  # name, so override it here with a per-config generator expression.  This
+  # entry comes after that one in CMAKE_CACHE_ARGS, so it wins.
+  list(APPEND NETCDF_SB_CONFIG
+    "-DCURL_LIBRARIES:PATH=$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/libcurl-d_imp.lib,${SB_INSTALL_PREFIX}/lib/libcurl_imp.lib>")
+endif()
+
 ExternalProject_Add(NETCDF
   PREFIX NETCDF
   URL "https://downloads.unidata.ucar.edu/netcdf-c/4.9.2/netcdf-c-4.9.2.tar.gz"

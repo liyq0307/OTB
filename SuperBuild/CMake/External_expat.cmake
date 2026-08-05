@@ -42,4 +42,13 @@ ExternalProject_Add(EXPAT
   LOG_INSTALL 1
   )
 
-SUPERBUILD_UPDATE_CMAKE_VARIABLES(EXPAT FALSE)
+SUPERBUILD_UPDATE_CMAKE_VARIABLES(EXPAT TRUE)
+
+if(WIN32)
+  # expat uses different library names per configuration on Windows:
+  # libexpatd.lib for Debug, libexpat.lib for Release.  Override the
+  # propagated library with a generator expression so consumers (e.g. libkml)
+  # link the correct one for the configuration being built.
+  set(_SB_EXPAT_LIBRARY
+    "$<IF:$<CONFIG:Debug>,${SB_INSTALL_PREFIX}/lib/libexpatd.lib,${SB_INSTALL_PREFIX}/lib/libexpat.lib>")
+endif()
