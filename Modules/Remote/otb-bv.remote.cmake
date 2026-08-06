@@ -24,6 +24,6 @@ otb_fetch_module(OTBBioVars
 A more detailed description can be found on the project website:
 https://gitlab.orfeo-toolbox.org/jinglada/otb-bv
 "
-  GIT_REPOSITORY https://gitlab.orfeo-toolbox.org/jinglada/otb-bv.git
-  GIT_TAG 0e56e487aebc4a493e25223960560e9ef0ca27ec
+  GIT_REPOSITORY https://github.com/tromain/otb-bv.git
+  GIT_TAG 519297118a6bbce819159e46432f83f4a5879d93
 )
