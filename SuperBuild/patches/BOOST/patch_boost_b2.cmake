@@ -37,7 +37,11 @@ file(MAKE_DIRECTORY "${boost_build_dir}")
 file(COPY "${b2_src_dir}/" DESTINATION "${boost_build_dir}")
 
 # --- Verify the critical files landed ---
-foreach(need build-system.jam tools/msvc.jam engine/config_toolset.bat)
+# NOTE: build/feature.jam must exist: b2's build-system.jam imports the whole
+# "build" module set (feature, alias, build-request, project, targets, ...).
+# A b2-src tree missing build/ fails at build time with:
+#   [errno 2] feature.jam (No such file or directory)
+foreach(need build-system.jam build/feature.jam tools/msvc.jam engine/config_toolset.bat)
   if(NOT EXISTS "${boost_build_dir}/${need}")
     message(FATAL_ERROR "BOOST: b2 overwrite missing ${need}")
   endif()
